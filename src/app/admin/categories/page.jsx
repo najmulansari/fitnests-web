@@ -1,60 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, X, Tag, ChevronUp, ChevronDown } from "lucide-react";
+import { getSession } from "@/lib/auth";
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const INITIAL_CATEGORIES = [
-  {
-    id: 1,
-    name: "Cricket",
-    createdDate: "2024-01-10T08:30:00Z",
-    createdBy: "Admin",
-    updatedDate: "2024-03-15T12:00:00Z",
-    updatedBy: "Admin",
-  },
-  {
-    id: 2,
-    name: "Football",
-    createdDate: "2024-01-12T09:00:00Z",
-    createdBy: "Admin",
-    updatedDate: "2024-04-01T10:30:00Z",
-    updatedBy: "Admin",
-  },
-  {
-    id: 3,
-    name: "Badminton",
-    createdDate: "2024-01-15T11:00:00Z",
-    createdBy: "Admin",
-    updatedDate: "2024-04-05T14:00:00Z",
-    updatedBy: "Admin",
-  },
-  {
-    id: 4,
-    name: "Swimming",
-    createdDate: "2024-02-01T08:00:00Z",
-    createdBy: "Admin",
-    updatedDate: "2024-04-10T09:45:00Z",
-    updatedBy: "Admin",
-  },
-  {
-    id: 5,
-    name: "Tennis",
-    createdDate: "2024-02-10T10:00:00Z",
-    createdBy: "Admin",
-    updatedDate: "2024-04-12T11:00:00Z",
-    updatedBy: "Admin",
-  },
-  {
-    id: 6,
-    name: "Fitness",
-    createdDate: "2024-02-20T09:30:00Z",
-    createdBy: "Admin",
-    updatedDate: "2024-04-14T16:00:00Z",
-    updatedBy: "Admin",
-  },
-];
+function mapCategory(cat) {
+  return {
+    id: cat.id,
+    name: cat.name,
+    createdDate: cat.createdAt,
+    createdBy: cat.createdBy,
+    updatedDate: cat.updatedAt,
+    updatedBy: cat.updatedBy,
+  };
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -69,7 +28,7 @@ function formatDate(iso) {
 
 // ─── Add Category Modal ───────────────────────────────────────────────────────
 
-function AddCategoryModal({ onClose, onSubmit }) {
+function AddCategoryModal({ onClose, onSubmit, createdBy }) {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -87,10 +46,23 @@ function AddCategoryModal({ onClose, onSubmit }) {
       return;
     }
     setSubmitting(true);
-    // Simulate async save
-    await new Promise((r) => setTimeout(r, 400));
-    onSubmit(trimmed);
-    setSubmitting(false);
+    try {
+      const res = await fetch("/api/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: trimmed, createdBy, updatedBy: createdBy }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to create category.");
+        return;
+      }
+      onSubmit(data);
+    } catch {
+      setError("Failed to connect to the server.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -190,10 +162,36 @@ function SortIcon({ column, sortKey, sortDir }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState(INITIAL_CATEGORIES);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [sortKey, setSortKey] = useState("createdDate");
   const [sortDir, setSortDir] = useState("desc");
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    setSession(getSession());
+  }, []);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await fetch("/api/categories");
+        const data = await res.json();
+        if (!res.ok) {
+          setFetchError(data.error || "Failed to load categories.");
+          return;
+        }
+        setCategories(data.map(mapCategory));
+      } catch {
+        setFetchError("Failed to connect to the server.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCategories();
+  }, []);
 
   function handleSort(key) {
     if (sortKey === key) {
@@ -214,17 +212,16 @@ export default function CategoriesPage() {
     return 0;
   });
 
-  function handleAddCategory(name) {
-    const now = new Date().toISOString();
+  function handleAddCategory(saved) {
     setCategories((prev) => [
       ...prev,
       {
-        id: Date.now(),
-        name,
-        createdDate: now,
-        createdBy: "Admin",
-        updatedDate: now,
-        updatedBy: "Admin",
+        id: saved.id,
+        name: saved.name,
+        createdDate: saved.createdAt,
+        createdBy: saved.createdBy,
+        updatedDate: saved.updatedAt,
+        updatedBy: saved.updatedBy,
       },
     ]);
     setShowModal(false);
@@ -260,6 +257,16 @@ export default function CategoriesPage() {
 
         {/* Table */}
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : fetchError ? (
+            <div className="px-5 py-14 text-center">
+              <p className="text-red-500 font-medium">{fetchError}</p>
+              <p className="text-xs text-gray-400 mt-1">Please try refreshing the page.</p>
+            </div>
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -325,12 +332,17 @@ export default function CategoriesPage() {
               </tbody>
             </table>
           </div>
+          )}
         </div>
       </div>
 
       {/* Modal */}
       {showModal && (
-        <AddCategoryModal onClose={() => setShowModal(false)} onSubmit={handleAddCategory} />
+        <AddCategoryModal
+          onClose={() => setShowModal(false)}
+          onSubmit={handleAddCategory}
+          createdBy={session?.name ?? "Admin"}
+        />
       )}
     </>
   );

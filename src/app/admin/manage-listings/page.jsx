@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -13,140 +13,18 @@ import {
   X,
 } from "lucide-react";
 
-// ─── Sample data ─────────────────────────────────────────────────────────────
 
-const LISTINGS = [
-  {
-    id: 1,
-    category: "Cricket",
-    name: "Shiv Hansa Cricket Academy",
-    city: "Delhi",
-    price: 503,
-    rating: 4.8,
-    image: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=120&q=70",
-  },
-  {
-    id: 2,
-    category: "Cricket",
-    name: "PowerPlay Cricket Club",
-    city: "Mumbai",
-    price: 400,
-    rating: 4.5,
-    image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=120&q=70",
-  },
-  {
-    id: 3,
-    category: "Cricket",
-    name: "Champions Cricket Ground",
-    city: "Bangalore",
-    price: 350,
-    rating: 4.2,
-    image: "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?w=120&q=70",
-  },
-  {
-    id: 4,
-    category: "Football",
-    name: "GoalKick Football Arena",
-    city: "Pune",
-    price: 500,
-    rating: 4.9,
-    image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=120&q=70",
-  },
-  {
-    id: 5,
-    category: "Football",
-    name: "Striker's Football Academy",
-    city: "Mumbai",
-    price: 450,
-    rating: 4.6,
-    image: "https://images.unsplash.com/photo-1551958219-acbc595b5abb?w=120&q=70",
-  },
-  {
-    id: 6,
-    category: "Football",
-    name: "FC United Training Ground",
-    city: "Chennai",
-    price: 300,
-    rating: 4.3,
-    image: "https://images.unsplash.com/photo-1556056504-5c7696c4c28d?w=120&q=70",
-  },
-  {
-    id: 7,
-    category: "Badminton",
-    name: "SmashPro Badminton Academy",
-    city: "Hyderabad",
-    price: 280,
-    rating: 4.7,
-    image: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=120&q=70",
-  },
-  {
-    id: 8,
-    category: "Badminton",
-    name: "Shuttlers Court",
-    city: "Kolkata",
-    price: 220,
-    rating: 4.4,
-    image: "https://images.unsplash.com/photo-1659758862044-6d8e44c7b0db?w=120&q=70",
-  },
-  {
-    id: 9,
-    category: "Swimming",
-    name: "AquaEdge Swim Academy",
-    city: "Ahmedabad",
-    price: 600,
-    rating: 4.8,
-    image: "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=120&q=70",
-  },
-  {
-    id: 10,
-    category: "Swimming",
-    name: "BlueWave Swimming Club",
-    city: "Jaipur",
-    price: 480,
-    rating: 4.5,
-    image: "https://images.unsplash.com/photo-1560090995-7d5a0a3a7c4a?w=120&q=70",
-  },
-  {
-    id: 11,
-    category: "Tennis",
-    name: "AcePoint Tennis Academy",
-    city: "Gurgaon",
-    price: 750,
-    rating: 4.6,
-    image: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=120&q=70",
-  },
-  {
-    id: 12,
-    category: "Tennis",
-    name: "Grand Slam Tennis Club",
-    city: "Noida",
-    price: 680,
-    rating: 4.3,
-    image: "https://images.unsplash.com/photo-1576426863848-c21f53c60b19?w=120&q=70",
-  },
-  {
-    id: 13,
-    category: "Fitness",
-    name: "IronCore Gym & Fitness",
-    city: "Delhi",
-    price: 999,
-    rating: 4.9,
-    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=120&q=70",
-  },
-  {
-    id: 14,
-    category: "Fitness",
-    name: "FlexZone Fitness Studio",
-    city: "Bangalore",
-    price: 799,
-    rating: 4.4,
-    image: "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=120&q=70",
-  },
-];
-
-const CATEGORIES = ["All Categories", ...Array.from(new Set(LISTINGS.map((l) => l.category)))];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
+
+function StarRating({ rating }) {
+  return (
+    <span className="flex items-center gap-1">
+      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
+      <span className="font-medium text-gray-800">{rating.toFixed(1)}</span>
+    </span>
+  );
+}
 
 function ListingRow({ listing, onView, onEdit, onDelete }) {
   return (
@@ -154,7 +32,7 @@ function ListingRow({ listing, onView, onEdit, onDelete }) {
       {/* Thumbnail */}
       <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-gray-100">
         <img
-          src={listing.image}
+          src={listing.imageUrl || "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=120&q=70"}
           alt={listing.name}
           className="w-full h-full object-cover"
           onError={(e) => {
@@ -292,14 +170,14 @@ function ViewModal({ listing, onClose }) {
         </button>
         <div className="h-40 bg-gray-100 overflow-hidden">
           <img
-            src={listing.image}
+            src={listing.imageUrl || "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=120&q=70"}
             alt={listing.name}
             className="w-full h-full object-cover"
           />
         </div>
         <div className="p-5">
           <span className="inline-block text-[10px] font-semibold uppercase tracking-widest text-red-600 bg-red-50 px-2 py-0.5 rounded mb-2">
-            {listing.category}
+            {listing.categoryName}
           </span>
           <h4 className="text-base font-bold text-gray-900 mb-3">{listing.name}</h4>
           <div className="grid grid-cols-2 gap-3 text-sm">
@@ -337,31 +215,64 @@ function ViewModal({ listing, onClose }) {
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function ManageListingsPage() {
-  const [listings, setListings] = useState(LISTINGS);
+  const [listings, setListings] = useState([]);
+  const [loadingListings, setLoadingListings] = useState(true);
+  const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [viewTarget, setViewTarget] = useState(null);
 
+  useEffect(() => {
+    async function fetchListings() {
+      try {
+        const res = await fetch("/api/listings");
+        if (!res.ok) return;
+        const data = await res.json();
+        setListings(data);
+      } catch {
+        // silently ignore
+      } finally {
+        setLoadingListings(false);
+      }
+    }
+    fetchListings();
+  }, []);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await fetch("/api/categories");
+        if (!res.ok) return;
+        const data = await res.json();
+        setCategories(["All Categories", ...data.map((c) => c.name)]);
+      } catch {
+        setCategories(["All Categories"]);
+      }
+    }
+    fetchCategories();
+  }, []);
+
   // Filter listings
   const filtered = useMemo(() => {
     return listings.filter((l) => {
       const matchesSearch =
-        l.name.toLowerCase().includes(search.toLowerCase()) ||
-        l.city.toLowerCase().includes(search.toLowerCase());
+        (l.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        (l.city ?? "").toLowerCase().includes(search.toLowerCase());
       const matchesCategory =
-        selectedCategory === "All Categories" || l.category === selectedCategory;
+        selectedCategory === "All Categories" || l.categoryName === selectedCategory;
       return matchesSearch && matchesCategory;
     });
   }, [listings, search, selectedCategory]);
 
-  // Group by category
+  // Group by categoryName
   const grouped = useMemo(() => {
     const map = new Map();
     filtered.forEach((l) => {
-      if (!map.has(l.category)) map.set(l.category, []);
-      map.get(l.category).push(l);
+      const key = l.categoryName ?? "Uncategorised";
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(l);
     });
     return map;
   }, [filtered]);
@@ -428,7 +339,7 @@ export default function ManageListingsPage() {
             </button>
             {categoryOpen && (
               <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-lg shadow-lg z-20 py-1 overflow-hidden">
-                {CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => {
@@ -450,7 +361,11 @@ export default function ManageListingsPage() {
         </div>
 
         {/* Listings */}
-        {grouped.size === 0 ? (
+        {loadingListings ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : grouped.size === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Search className="w-10 h-10 text-gray-300 mb-3" />
             <p className="text-gray-500 font-medium">No listings found</p>
@@ -469,7 +384,7 @@ export default function ManageListingsPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-5">
-            {Array.from(grouped.entries()).map(([category, items]) => (
+            {Array.from(grouped.entries()).map(([category, items]) => (  // eslint-disable-line
               <CategoryGroup
                 key={category}
                 category={category}

@@ -1,21 +1,25 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { FormField, Input, Textarea, Select, SectionCard } from "../ui";
 
-const CATEGORIES = [
-  "Cricket",
-  "Football",
-  "Badminton",
-  "Swimming",
-  "Tennis",
-  "Fitness",
-  "Yoga",
-  "Boxing",
-  "Basketball",
-  "Cycling",
-];
-
 export default function BasicInfoSection({ form, onChange }) {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await fetch("/api/categories");
+        if (!res.ok) return;
+        const data = await res.json();
+        setCategories(data);
+      } catch {
+        // silently ignore — dropdown will be empty
+      }
+    }
+    fetchCategories();
+  }, []);
+
   return (
     <SectionCard title="Basic Information">
       <div className="flex flex-col gap-5">
@@ -33,21 +37,22 @@ export default function BasicInfoSection({ form, onChange }) {
         <div className="grid grid-cols-2 gap-4">
           <FormField label="Category" required>
             <Select
-              value={form.category}
-              onChange={(e) => onChange("category", e.target.value)}
+              value={form.categoryId}
+              onChange={(e) => onChange("categoryId", e.target.value ? Number(e.target.value) : "")}
             >
               <option value="">Select</option>
-              {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
                 </option>
               ))}
             </Select>
           </FormField>
           <FormField label="Price">
             <Input
-              type="text"
-              placeholder="₹500"
+              type="number"
+              placeholder="500"
+              min="0"
               value={form.price}
               onChange={(e) => onChange("price", e.target.value)}
             />
@@ -58,16 +63,20 @@ export default function BasicInfoSection({ form, onChange }) {
         <div className="grid grid-cols-3 gap-4">
           <FormField label="Rating">
             <Input
-              type="text"
+              type="number"
               placeholder="4.5"
+              min="0"
+              max="5"
+              step="0.1"
               value={form.rating}
               onChange={(e) => onChange("rating", e.target.value)}
             />
           </FormField>
           <FormField label="Reviews">
             <Input
-              type="text"
+              type="number"
               placeholder="0"
+              min="0"
               value={form.reviews}
               onChange={(e) => onChange("reviews", e.target.value)}
             />

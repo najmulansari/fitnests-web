@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import BasicInfoSection from "../components/sections/BasicInfoSection";
@@ -10,10 +11,11 @@ import ListingImageSection from "../components/sections/ListingImageSection";
 import AmenitiesSection from "../components/sections/AmenitiesSection";
 import InstructorsSection from "../components/sections/InstructorsSection";
 import ClassesSection from "../components/sections/ClassesSection";
+import { getSession } from "@/lib/auth";
 
 const INITIAL_FORM = {
   name: "",
-  category: "",
+  categoryId: "",
   price: "",
   rating: "",
   reviews: "",
@@ -36,16 +38,79 @@ const INITIAL_FORM = {
 };
 
 export default function AddNewListingPage() {
+  const router = useRouter();
   const [form, setForm] = useState(INITIAL_FORM);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    setSession(getSession());
+  }, []);
 
   function handleChange(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    // TODO: wire up to API
-    console.log("New listing payload:", form);
+    if (!form.name.trim()) {
+      setError("Listing name is required.");
+      return;
+    }
+    if (!form.categoryId) {
+      setError("Please select a category.");
+      return;
+    }
+
+    setError("");
+    setSubmitting(true);
+
+    try {
+      const payload = {
+        name: form.name.trim(),
+        categoryId: form.categoryId ? Number(form.categoryId) : null,
+        price: form.price !== "" ? parseFloat(form.price) : null,
+        rating: form.rating !== "" ? parseFloat(form.rating) : null,
+        reviews: form.reviews !== "" ? parseInt(form.reviews, 10) : 0,
+        discount: form.discount || null,
+        exclusive: form.exclusive,
+        description: form.description || null,
+        overview: form.overview || null,
+        programOverview: form.programOverview || null,
+        city: form.city || null,
+        address: form.address || null,
+        phone1: form.phone1 || null,
+        phone2: form.phone2 || null,
+        email: form.email || null,
+        website: form.website || null,
+        instagram: form.instagram || null,
+        imageUrl: null,
+        createdBy: session?.name ?? "Admin",
+        amenities: form.amenities.filter((a) => a.trim() !== ""),
+        instructors: form.instructors.filter((i) => i.name.trim() !== ""),
+        classes: form.classes.filter((c) => c.name.trim() !== ""),
+      };
+
+      const res = await fetch("/api/listings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Failed to create listing.");
+        return;
+      }
+
+      router.push("/admin/manage-listings");
+    } catch {
+      setError("Failed to connect to the server.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -69,11 +134,19 @@ export default function AddNewListingPage() {
         <InstructorsSection form={form} onChange={handleChange} />
         <ClassesSection form={form} onChange={handleChange} />
 
+        {error && (
+          <p className="text-sm text-red-600 font-medium -mt-2">{error}</p>
+        )}
+
         <button
           type="submit"
-          className="w-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold py-3.5 rounded-lg text-sm transition-colors mb-6"
+          disabled={submitting}
+          className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-400 active:bg-red-800 text-white font-semibold py-3.5 rounded-lg text-sm transition-colors mb-6 flex items-center justify-center gap-2"
         >
-          Create Listing
+          {submitting && (
+            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          )}
+          {submitting ? "Creating…" : "Create Listing"}
         </button>
       </form>
     </div>
