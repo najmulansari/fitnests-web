@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import {
   Search,
   ChevronDown,
@@ -9,8 +10,6 @@ import {
   Trash2,
   Plus,
   Star,
-  MapPin,
-  IndianRupee,
   X,
 } from "lucide-react";
 
@@ -149,20 +148,11 @@ const CATEGORIES = ["All Categories", ...Array.from(new Set(LISTINGS.map((l) => 
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function StarRating({ rating }) {
-  return (
-    <span className="flex items-center gap-0.5 text-xs font-semibold text-amber-500">
-      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-      {rating.toFixed(1)}
-    </span>
-  );
-}
-
 function ListingRow({ listing, onView, onEdit, onDelete }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group">
+    <div className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 transition-colors">
       {/* Thumbnail */}
-      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded overflow-hidden shrink-0 bg-gray-100">
+      <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-gray-100">
         <img
           src={listing.image}
           alt={listing.name}
@@ -177,38 +167,35 @@ function ListingRow({ listing, onView, onEdit, onDelete }) {
       {/* Info */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-gray-900 truncate">{listing.name}</p>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
-          <span className="flex items-center gap-1 text-xs text-gray-500">
-            <MapPin className="w-3 h-3" />
-            {listing.city}
-          </span>
-          <span className="flex items-center gap-0.5 text-xs text-gray-500">
-            <IndianRupee className="w-3 h-3" />
-            {listing.price}
-          </span>
-          <StarRating rating={listing.rating} />
-        </div>
+        <p className="flex items-center gap-1.5 text-xs text-gray-500 mt-0.5">
+          <span>{listing.city}</span>
+          <span className="text-gray-300">·</span>
+          <span>₹{listing.price}</span>
+          <span className="text-gray-300">·</span>
+          <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
+          <span>{listing.rating.toFixed(1)}</span>
+        </p>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-0.5 shrink-0">
         <button
           onClick={() => onView(listing)}
-          className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+          className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
           aria-label="View"
         >
           <Eye className="w-4 h-4" />
         </button>
         <button
           onClick={() => onEdit(listing)}
-          className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+          className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
           aria-label="Edit"
         >
           <Pencil className="w-4 h-4" />
         </button>
         <button
           onClick={() => onDelete(listing)}
-          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+          className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
           aria-label="Delete"
         >
           <Trash2 className="w-4 h-4" />
@@ -220,11 +207,11 @@ function ListingRow({ listing, onView, onEdit, onDelete }) {
 
 function CategoryGroup({ category, listings, onView, onEdit, onDelete }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
       {/* Category header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50">
+      <div className="flex items-center gap-2 px-5 py-3.5 border-b border-gray-100">
         <h3 className="text-sm font-bold text-gray-800">{category}</h3>
-        <span className="inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold bg-red-100 text-red-600 rounded-full">
+        <span className="inline-flex items-center justify-center min-w-[20px] px-1.5 h-5 text-[11px] font-semibold bg-gray-100 text-gray-500 rounded-full">
           {listings.length}
         </span>
       </div>
@@ -386,7 +373,7 @@ export default function ManageListingsPage() {
 
   return (
     <>
-      <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
+      <div className="p-5 sm:p-6">
         {/* Page header */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
           <div>
@@ -397,10 +384,13 @@ export default function ManageListingsPage() {
               {filtered.length} total listing{filtered.length !== 1 ? "s" : ""}
             </p>
           </div>
-          <button className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2.5 rounded transition-colors self-start sm:self-auto shrink-0">
+          <Link
+            href="/admin/manage-listings/new"
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors self-start sm:self-auto shrink-0"
+          >
             <Plus className="w-4 h-4" />
             Add New Listing
-          </button>
+          </Link>
         </div>
 
         {/* Filters */}
@@ -500,6 +490,7 @@ export default function ManageListingsPage() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
+
     </>
   );
 }
