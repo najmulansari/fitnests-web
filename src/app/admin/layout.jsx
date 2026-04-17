@@ -12,6 +12,8 @@ import {
   BarChart2,
   Settings,
   Users,
+  Search,
+  Tag,
 } from "lucide-react";
 import { getSession, logout } from "@/lib/auth";
 
@@ -23,6 +25,7 @@ const navSections = [
     items: [
       { href: "/admin/manage-listings", icon: LayoutList, label: "All Listings" },
       { href: "/admin/manage-listings/new", icon: PlusCircle, label: "Add New Listing" },
+      { href: "/admin/categories", icon: Tag, label: "Category" },
     ],
   },
   {
@@ -181,11 +184,17 @@ export default function AdminLayout({ children }) {
             </span>
           </div>
 
-          {/* Desktop: greeting */}
-          <p className="hidden lg:block text-sm text-gray-500">
-            Welcome back,{" "}
-            <span className="font-semibold text-gray-800">{session?.name}</span>
-          </p>
+          {/* Desktop: search */}
+          <div className="hidden lg:flex items-center flex-1 max-w-xs">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search listings..."
+                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder:text-gray-400"
+              />
+            </div>
+          </div>
 
           {/* Right: Logout */}
           <button
