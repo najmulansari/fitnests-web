@@ -20,7 +20,6 @@ import {
   Play,
   ArrowLeft,
 } from "lucide-react";
-import { getStudioBySlug, getSimilarStudios } from "@/lib/studios-data";
 
 const CITIES = ["All Cities", "Delhi", "Noida", "Gurgaon"];
 
@@ -149,9 +148,7 @@ function OfferingsPanel({ offerings, appointments = [], className = "" }) {
                 <span className="text-sm font-bold text-gray-900 whitespace-nowrap">
                   ₹{o.price.toLocaleString("en-IN")}/session
                 </span>
-                <button className="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-4 py-1.5 rounded transition-colors">
-                  Book
-                </button>
+                
               </div>
             </div>
           ))}
@@ -196,11 +193,11 @@ function OfferingsPanel({ offerings, appointments = [], className = "" }) {
 
 function ContactCard({ phone, email, website, instagram, whatsapp }) {
   const items = [
-    { icon: Phone, label: phone, href: `tel:${phone}` },
-    { icon: Mail, label: email, href: `mailto:${email}` },
-    { icon: Globe, label: "Website", href: `https://${website}` },
-    { icon: AtSign, label: "Instagram", href: `https://instagram.com/${instagram.replace("@", "")}` },
-  ];
+    phone    && { icon: Phone,  label: phone,       href: `tel:${phone}` },
+    email    && { icon: Mail,   label: email,        href: `mailto:${email}` },
+    website  && { icon: Globe,  label: "Website",    href: website.startsWith("http") ? website : `https://${website}` },
+    instagram && { icon: AtSign, label: "Instagram", href: `https://instagram.com/${instagram.replace("@", "")}` },
+  ].filter(Boolean);
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
@@ -221,21 +218,23 @@ function ContactCard({ phone, email, website, instagram, whatsapp }) {
       </div>
 
       {/* WhatsApp CTA */}
-      <div className="mt-5 bg-green-50 border border-green-100 rounded-xl p-4 text-center">
-        <MessageCircle className="w-6 h-6 text-green-600 mx-auto mb-1.5" />
-        <p className="text-xs font-semibold text-gray-700 mb-3">
-          Connect on WhatsApp
-        </p>
-        <a
-          href={`https://wa.me/${whatsapp}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
-        >
-          <MessageCircle className="w-3.5 h-3.5" />
-          Contact Us!
-        </a>
-      </div>
+      {whatsapp && (
+        <div className="mt-5 bg-green-50 border border-green-100 rounded-xl p-4 text-center">
+          <MessageCircle className="w-6 h-6 text-green-600 mx-auto mb-1.5" />
+          <p className="text-xs font-semibold text-gray-700 mb-3">
+            Connect on WhatsApp
+          </p>
+          <a
+            href={`https://wa.me/${whatsapp}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            Contact Us!
+          </a>
+        </div>
+      )}
     </div>
   );
 }
@@ -373,16 +372,66 @@ function NotFound() {
   );
 }
 
+// ─── Normalise API response → studio shape ────────────────────────────────────
+
+function normalise(data) {
+  return {
+    name:          data.name         ?? "Unnamed Studio",
+    sport:         data.categoryName ?? data.sport ?? "Studio",
+    city:          data.city         ?? "",
+    address:       data.address      ?? data.city  ?? "",
+    image:         data.imageUrl     ?? data.image  ?? "",
+    rating:        data.rating       ?? 0,
+    reviewCount:   data.reviewCount  ?? 0,
+    phone:         data.phone        ?? null,
+    email:         data.email        ?? null,
+    website:       data.website      ?? null,
+    instagram:     data.instagram    ?? null,
+    whatsapp:      data.whatsapp     ?? null,
+    overview:      data.overview     ?? "",
+    programTitle:  data.programTitle ?? `${data.name ?? "Studio"} – Program Overview`,
+    programPoints: Array.isArray(data.programPoints) ? data.programPoints : [],
+    offerings:     Array.isArray(data.classes)     ? data.classes     : [],
+    appointments:  Array.isArray(data.appointments)  ? data.appointments  : [],
+  };
+}
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function StudioDetailPage() {
   const { slug } = useParams();
+  const [studio, setStudio]       = useState(null);
+  const [loading, setLoading]     = useState(true);   // true on first mount
+  const [notFound, setNotFound]   = useState(false);
   const [favorited, setFavorited] = useState(false);
 
-  const studio = getStudioBySlug(slug);
-  if (!studio) return <NotFound />;
+  useEffect(() => {
+    console.log("slug", slug);
+    if (!slug) return;
 
-  const similar = getSimilarStudios(studio.similarSlugs);
+    // All setState calls are inside promise callbacks — no synchronous setState in effect body
+    fetch(`/api/listings/${slug}`)
+      .then((res) => {
+        if (res.status === 404) { setNotFound(true); return null; }
+        if (!res.ok) throw new Error("fetch failed");
+        return res.json();
+      })
+      .then((data) => {
+        if (data) setStudio(normalise(data));
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (notFound || !studio) return <NotFound />;
 
   function handleShare() {
     if (navigator.share) {
@@ -501,7 +550,7 @@ export default function StudioDetailPage() {
                   whatsapp={studio.whatsapp}
                 />
                 <AddressCard address={studio.address} city={studio.city} />
-                <SimilarPlacesCard similar={similar} />
+                <SimilarPlacesCard similar={[]} />
               </div>
             </div>
 

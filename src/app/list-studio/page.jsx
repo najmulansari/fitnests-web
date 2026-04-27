@@ -134,7 +134,7 @@ export default function ListYourStudioPage() {
         <section className="relative">
           <div className="relative h-[480px] overflow-hidden">
             <img
-              src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80"
+              src="/images/list-studio-bg.jpg"
               alt="Sports facility"
               className="w-full h-full object-cover"
             />
@@ -215,7 +215,7 @@ export default function ListYourStudioPage() {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <p className="text-[11px] tracking-[0.2em] text-gray-500 font-semibold uppercase font-mono mb-3">
-                Who It's For
+                Who It&apos;s For
               </p>
               <h2 className="text-3xl md:text-4xl font-black text-gray-900">
                 Empower Your Business with ApexOps

@@ -1,23 +1,19 @@
 const sports = [
   {
-    name: "Cricket",
-    image:
-      "https://images.unsplash.com/photo-1624526267942-ab0ff8a3e972?w=600&q=80",
-  },
-  {
     name: "Football",
-    image:
-      "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=600&q=80",
+    image: "/images/categories/football.jpg",
   },
   {
-    name: "Swimming",
-    image:
-      "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=600&q=80",
+    name: "Cricket",
+    image: "/images/categories/cricket.jpg",
   },
   {
     name: "Badminton",
-    image:
-      "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=600&q=80",
+    image: "/images/categories/badminton.jpg",
+  },
+  {
+    name: "Swimming",
+    image: "/images/categories/swimming.jpg",
   },
 ];
 

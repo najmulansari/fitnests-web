@@ -8,8 +8,7 @@ const events = [
     date: "Apr 26, 2026",
     day: "26",
     month: "APR",
-    image:
-      "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=400&q=80",
+    image: "/images/event-running.jpg",
   },
   {
     title: "HYROX Mumbai 2026",
@@ -17,8 +16,7 @@ const events = [
     date: "Jul 24-26, 2026",
     day: "24",
     month: "JUL",
-    image:
-      "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=80",
+    image: "/images/gym-hero.jpg",
   },
   {
     title: "National Badminton Championships",
@@ -26,8 +24,7 @@ const events = [
     date: "Apr 11-12, 2026",
     day: "11",
     month: "APR",
-    image:
-      "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=400&q=80",
+    image: "/images/badminton.jpg",
   },
   {
     title: "Inter-Club Cricket Tournament",
@@ -35,8 +32,7 @@ const events = [
     date: "May 3-5, 2026",
     day: "3",
     month: "MAY",
-    image:
-      "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=400&q=80",
+    image: "/images/cricket-2.jpg",
   },
   {
     title: "Zumba Fitness Festival",
@@ -44,8 +40,7 @@ const events = [
     date: "May 18, 2026",
     day: "18",
     month: "MAY",
-    image:
-      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&q=80",
+    image: "/images/zumba.jpg",
   },
   {
     title: "SwimFest Aqua Marathon 2026",
@@ -53,8 +48,7 @@ const events = [
     date: "Jun 7, 2026",
     day: "7",
     month: "JUN",
-    image:
-      "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=400&q=80",
+    image: "/images/swimming.jpg",
   },
 ];
 

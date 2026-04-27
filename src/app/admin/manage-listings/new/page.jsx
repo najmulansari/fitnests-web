@@ -11,6 +11,7 @@ import ListingImageSection from "../components/sections/ListingImageSection";
 import AmenitiesSection from "../components/sections/AmenitiesSection";
 import InstructorsSection from "../components/sections/InstructorsSection";
 import ClassesSection from "../components/sections/ClassesSection";
+import VideoSection from "../components/sections/VideoSection";
 import { getSession } from "@/lib/auth";
 
 const INITIAL_FORM = {
@@ -31,7 +32,8 @@ const INITIAL_FORM = {
   email: "",
   website: "",
   instagram: "",
-  image: null,
+  imageUrl: null,
+  videoUrl: "",
   amenities: [""],
   instructors: [{ name: "", specialty: "" }],
   classes: [{ name: "", duration: "", price: "", description: "" }],
@@ -85,7 +87,8 @@ export default function AddNewListingPage() {
         email: form.email || null,
         website: form.website || null,
         instagram: form.instagram || null,
-        imageUrl: null,
+        imageUrl: form.imageUrl || null,
+        videoUrl: form.videoUrl || null,
         createdBy: session?.name ?? "Admin",
         amenities: form.amenities.filter((a) => a.trim() !== ""),
         instructors: form.instructors.filter((i) => i.name.trim() !== ""),
@@ -130,6 +133,7 @@ export default function AddNewListingPage() {
         <AddressSection form={form} onChange={handleChange} />
         <ContactSection form={form} onChange={handleChange} />
         <ListingImageSection form={form} onChange={handleChange} />
+        <VideoSection form={form} onChange={handleChange} />
         <AmenitiesSection form={form} onChange={handleChange} />
         <InstructorsSection form={form} onChange={handleChange} />
         <ClassesSection form={form} onChange={handleChange} />

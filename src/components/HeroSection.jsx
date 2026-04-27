@@ -14,7 +14,7 @@ export default function HeroSection() {
       {/* Hero image area */}
       <div className="relative h-[520px] overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1600&q=80"
+          src="/images/gym-hero.jpg"
           alt="Fitness gym"
           className="w-full h-full object-cover"
         />

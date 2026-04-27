@@ -14,6 +14,7 @@ import {
   Users,
   Search,
   Tag,
+  MapPin,
 } from "lucide-react";
 import { getSession, logout } from "@/lib/auth";
 
@@ -26,6 +27,7 @@ const navSections = [
       { href: "/admin/manage-listings", icon: LayoutList, label: "All Listings" },
       { href: "/admin/manage-listings/new", icon: PlusCircle, label: "Add New Listing" },
       { href: "/admin/categories", icon: Tag, label: "Category" },
+      { href: "/admin/cities", icon: MapPin, label: "Cities" },
     ],
   },
   {
@@ -114,15 +116,13 @@ export default function AdminLayout({ children }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [session, setSession] = useState(null);
-  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     const s = getSession();
     if (!s) {
       router.replace("/login");
     } else {
-      setSession(s);
-      setChecking(false);
+      setSession(s); // eslint-disable-line react-compiler/react-compiler
     }
   }, [router]);
 
@@ -131,7 +131,7 @@ export default function AdminLayout({ children }) {
     router.replace("/");
   }
 
-  if (checking) {
+  if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />

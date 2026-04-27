@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Search,
   ChevronDown,
@@ -17,27 +18,18 @@ import {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function StarRating({ rating }) {
-  return (
-    <span className="flex items-center gap-1">
-      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
-      <span className="font-medium text-gray-800">{rating.toFixed(1)}</span>
-    </span>
-  );
-}
-
 function ListingRow({ listing, onView, onEdit, onDelete }) {
   return (
     <div className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 transition-colors">
       {/* Thumbnail */}
       <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-gray-100">
         <img
-          src={listing.imageUrl || "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=120&q=70"}
+          src={listing.imageUrl || "/images/gym-fallback.jpg"}
           alt={listing.name}
           className="w-full h-full object-cover"
           onError={(e) => {
             e.target.src =
-              "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=120&q=70";
+              "/images/gym-fallback.jpg";
           }}
         />
       </div>
@@ -110,7 +102,7 @@ function CategoryGroup({ category, listings, onView, onEdit, onDelete }) {
   );
 }
 
-// ─── Delete confirmation modal ────────────────────────────────────────────────
+// ─── Delete modal ────────────────────────────────────────────────────────────
 
 function DeleteModal({ listing, onConfirm, onCancel }) {
   if (!listing) return null;
@@ -154,67 +146,10 @@ function DeleteModal({ listing, onConfirm, onCancel }) {
   );
 }
 
-// ─── View modal ──────────────────────────────────────────────────────────────
-
-function ViewModal({ listing, onClose }) {
-  if (!listing) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden">
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 z-10"
-        >
-          <X className="w-4 h-4" />
-        </button>
-        <div className="h-40 bg-gray-100 overflow-hidden">
-          <img
-            src={listing.imageUrl || "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=120&q=70"}
-            alt={listing.name}
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className="p-5">
-          <span className="inline-block text-[10px] font-semibold uppercase tracking-widest text-red-600 bg-red-50 px-2 py-0.5 rounded mb-2">
-            {listing.categoryName}
-          </span>
-          <h4 className="text-base font-bold text-gray-900 mb-3">{listing.name}</h4>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">City</p>
-              <p className="font-medium text-gray-800">{listing.city}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Price</p>
-              <p className="font-medium text-gray-800">₹{listing.price}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Rating</p>
-              <StarRating rating={listing.rating} />
-            </div>
-            <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Status</p>
-              <span className="inline-block text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded">
-                Active
-              </span>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="mt-5 w-full bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold py-2 rounded transition-colors"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function ManageListingsPage() {
+  const router = useRouter();
   const [listings, setListings] = useState([]);
   const [loadingListings, setLoadingListings] = useState(true);
   const [categories, setCategories] = useState([]);
@@ -222,7 +157,6 @@ export default function ManageListingsPage() {
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [viewTarget, setViewTarget] = useState(null);
 
   useEffect(() => {
     async function fetchListings() {
@@ -384,13 +318,13 @@ export default function ManageListingsPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-5">
-            {Array.from(grouped.entries()).map(([category, items]) => (  // eslint-disable-line
+            {Array.from(grouped.entries()).map(([category, items]) => (
               <CategoryGroup
                 key={category}
                 category={category}
                 listings={items}
-                onView={setViewTarget}
-                onEdit={(l) => alert(`Edit: ${l.name}`)}
+                onView={(l) => router.push(`/venues/${l.id}?from=admin`)}
+                onEdit={(l) => router.push(`/admin/manage-listings/${l.id}/edit`)}
                 onDelete={setDeleteTarget}
               />
             ))}
@@ -399,7 +333,6 @@ export default function ManageListingsPage() {
       </div>
 
       {/* Modals */}
-      <ViewModal listing={viewTarget} onClose={() => setViewTarget(null)} />
       <DeleteModal
         listing={deleteTarget}
         onConfirm={handleDelete}

@@ -6,6 +6,11 @@ const nextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      // Vercel Blob — public CDN hostname for uploaded assets
+      {
+        protocol: "https",
+        hostname: "*.public.blob.vercel.storage",
+      },
     ],
   },
 };
